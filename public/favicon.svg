@@ -1,0 +1,30 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rounded rectangle -->
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+  
+  <!-- Conversion symbol - circular arrows -->
+  <g stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round">
+    <!-- Top curved arrow -->
+    <path d="M8 12 Q16 8 24 12 L22 10 M24 12 L22 14"/>
+    <!-- Bottom curved arrow -->
+    <path d="M24 20 Q16 24 8 20 L10 18 M8 20 L10 22"/>
+  </g>
+  
+  <!-- "64" text -->
+  <text x="16" y="18" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">64</text>
+  
+  <!-- Small encoding dots -->
+  <g fill="#ffffff" opacity="0.7">
+    <circle cx="6" cy="6" r="1"/>
+    <circle cx="26" cy="6" r="1"/>
+    <circle cx="6" cy="26" r="1"/>
+    <circle cx="26" cy="26" r="1"/>
+  </g>
+</svg>

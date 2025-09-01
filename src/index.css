@@ -1,0 +1,180 @@
+/**
+ * =====================================
+ *         UI DESIGN SYSTEM
+ * =====================================
+ * 
+ * Project: Base64 Text Converter
+ * Type: Web Utility Tool
+ * 
+ * DESIGN PHILOSOPHY
+ * -----------------
+ * Core Principle: Minimalist efficiency with maximum usability
+ * Design Style: Modern Clean with subtle depth
+ * Emotion Goal: Trust, reliability, and professional simplicity
+ * 
+ * VISUAL LANGUAGE
+ * ----------------
+ * Primary Focus: Clear input/output areas with distinct visual separation
+ * Hierarchy: Action buttons > Content areas > Labels
+ * Whitespace: Generous breathing room for reduced cognitive load
+ * 
+ * COLOR SYSTEM
+ * -------------
+ * Primary: 220 13% 18% - Professional dark for actions
+ * Secondary: 210 40% 98% - Soft backgrounds for content areas
+ * Accent: 142 76% 36% - Success green for positive actions
+ * Neutral: Carefully balanced grays for text hierarchy
+ * 
+ * TYPOGRAPHY
+ * ----------
+ * Display: Bold headings for clear section identification
+ * Body: Readable monospace for code content, sans-serif for UI
+ * Scale: Clear size differentiation between headers and content
+ * 
+ * INTERACTIONS
+ * ------------
+ * Feedback: Immediate visual confirmation on all actions
+ * Transitions: Smooth 200ms for state changes
+ * States: Hover, focus, and active states clearly defined
+ * 
+ * ACCESSIBILITY
+ * -------------
+ * Contrast: WCAG AA compliant throughout
+ * Focus: Clear keyboard navigation indicators
+ * Motion: Subtle, respects reduced motion preferences
+ * ====================================
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 13% 18%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
+    --primary: 220 13% 18%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 220 13% 18%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 91%;
+    --input: 210 40% 98%;
+    --ring: 220 13% 18%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem
+  ;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%}
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%
+  ;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%}
+}
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Enhanced synchronized textarea resizing */
+  .resizable-textarea {
+    @apply transition-all duration-200 ease-out;
+    resize: vertical;
+    overflow-y: auto;
+  }
+  
+  .resizable-textarea:hover {
+    @apply shadow-sm border-ring/20;
+  }
+  
+  .resizable-textarea:focus {
+    @apply shadow-md;
+  }
+  
+  /* Visual indicator for synchronized resizing */
+  .resizable-textarea:active,
+  .resizable-textarea:focus-within {
+    @apply ring-2 ring-accent/20 border-accent/30;
+  }
+  
+  /* Custom resize handle styling with sync indicator */
+  .resizable-textarea::-webkit-resizer {
+    background: linear-gradient(-45deg, 
+      transparent 0px, 
+      transparent 2px, 
+      hsl(var(--accent)) 2px, 
+      hsl(var(--accent)) 3px, 
+      transparent 3px,
+      transparent 5px,
+      hsl(var(--border)) 5px, 
+      hsl(var(--border)) 6px, 
+      transparent 6px
+    );
+    border-radius: 0 0 4px 0;
+    opacity: 0.8;
+  }
+  
+  .resizable-textarea:hover::-webkit-resizer {
+    opacity: 1;
+  }
+  
+  /* Synchronized resize animation */
+  .resizable-textarea.syncing {
+    @apply ring-2 ring-accent/30 border-accent/40;
+    transition: all 150ms ease-out;
+  }
+}
