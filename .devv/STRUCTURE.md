@@ -14,7 +14,7 @@ A secure, local Base64 text converter tool that enables bidirectional conversion
 - Multi-language support: Chinese, English, Japanese, and Korean languages
 - Persistent language preference: User's language choice is saved locally
 - Elegant language selector with country flags
-- Custom professional favicon with Base64 encoding theme and proper multi-format support
+- Custom professional favicon with Base64 encoding theme matching green color scheme
 
 ## Data Storage
 **Local Only:**
@@ -29,6 +29,11 @@ A secure, local Base64 text converter tool that enables bidirectional conversion
 **Environment Variables:** None required
 
 ## Critical Notes
+**Dependency Management:**
+- Removed unused react-day-picker and date-fns packages that caused deployment conflicts
+- Calendar component deleted as it's not needed for Base64 conversion functionality
+- Streamlined dependencies for better deployment reliability
+
 **Internationalization System:**
 - Complete translation coverage for 4 languages: Chinese (zh), English (en), Japanese (ja), Korean (ko)
 - Zustand store with persistence automatically saves language preference
