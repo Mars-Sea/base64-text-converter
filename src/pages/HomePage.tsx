@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo, DragEvent, ChangeEvent } from 'react'
 import { 
   Copy, 
   RotateCcw, 
@@ -21,6 +21,15 @@ import { useThemeStore } from '@/store/theme-store'
 import { LanguageSelector } from '@/components/LanguageSelector'
 import { encodeTextToBase64, decodeBase64ToText } from '@/lib/base64'
 
+// Text metrics calculator (pure function, moved outside component)
+function getMetrics(val: string) {
+  const chars = val.length
+  const lines = val === '' ? 0 : val.split('\n').length
+  const words = val.trim() === '' ? 0 : val.trim().split(/\s+/).length
+  const bytes = new TextEncoder().encode(val).length
+  return { chars, lines, words, bytes }
+}
+
 function HomePage() {
   const [textInput, setTextInput] = useState('')
   const [base64Input, setBase64Input] = useState('')
@@ -41,6 +50,10 @@ function HomePage() {
   const base64AreaRef = useRef<HTMLTextAreaElement>(null)
   const textFileInputRef = useRef<HTMLInputElement>(null)
   const base64FileInputRef = useRef<HTMLInputElement>(null)
+
+  // Memoize metrics calculations
+  const textMetrics = useMemo(() => getMetrics(textInput), [textInput])
+  const base64Metrics = useMemo(() => getMetrics(base64Input), [base64Input])
 
   // Synchronize textarea heights
   useEffect(() => {
@@ -110,8 +123,42 @@ function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Handle Plain Text Changes (with Auto-Convert)
+  const handleTextChange = useCallback((value: string) => {
+    setTextInput(value)
+    if (isLiveConvert) {
+      if (!value) {
+        setBase64Input('')
+        return
+      }
+      try {
+        const encoded = encodeTextToBase64(value)
+        setBase64Input(encoded)
+      } catch {
+        // Silently capture invalid characters during typing
+      }
+    }
+  }, [isLiveConvert])
+
+  // Handle Base64 Changes (with Auto-Convert)
+  const handleBase64Change = useCallback((value: string) => {
+    setBase64Input(value)
+    if (isLiveConvert) {
+      if (!value) {
+        setTextInput('')
+        return
+      }
+      try {
+        const decoded = decodeBase64ToText(value)
+        setTextInput(decoded)
+      } catch {
+        // Silently capture invalid base64 segments during typing
+      }
+    }
+  }, [isLiveConvert])
+
   // Manual convert Text to Base64
-  const handleConvertToBase64 = () => {
+  const handleConvertToBase64 = useCallback(() => {
     if (!textInput.trim()) {
       toast({
         title: t.emptyInput,
@@ -135,10 +182,10 @@ function HomePage() {
         variant: "destructive"
       })
     }
-  }
+  }, [textInput, toast, t])
 
   // Manual convert Base64 to Text
-  const handleConvertToText = () => {
+  const handleConvertToText = useCallback(() => {
     if (!base64Input.trim()) {
       toast({
         title: t.emptyInput,
@@ -162,44 +209,10 @@ function HomePage() {
         variant: "destructive"
       })
     }
-  }
-
-  // Handle Plain Text Changes (with Auto-Convert)
-  const handleTextChange = (value: string) => {
-    setTextInput(value)
-    if (isLiveConvert) {
-      if (!value) {
-        setBase64Input('')
-        return
-      }
-      try {
-        const encoded = encodeTextToBase64(value)
-        setBase64Input(encoded)
-      } catch {
-        // Silently capture invalid characters during typing
-      }
-    }
-  }
-
-  // Handle Base64 Changes (with Auto-Convert)
-  const handleBase64Change = (value: string) => {
-    setBase64Input(value)
-    if (isLiveConvert) {
-      if (!value) {
-        setTextInput('')
-        return
-      }
-      try {
-        const decoded = decodeBase64ToText(value)
-        setTextInput(decoded)
-      } catch {
-        // Silently capture invalid base64 segments during typing
-      }
-    }
-  }
+  }, [base64Input, toast, t])
 
   // Copy plain text to clipboard
-  const copyText = async () => {
+  const copyText = useCallback(async () => {
     if (!textInput) {
       toast({
         title: t.noContentToCopy,
@@ -224,10 +237,10 @@ function HomePage() {
         variant: "destructive"
       })
     }
-  }
+  }, [textInput, toast, t])
 
   // Copy Base64 to clipboard
-  const copyBase64 = async () => {
+  const copyBase64 = useCallback(async () => {
     if (!base64Input) {
       toast({
         title: t.noContentToCopy,
@@ -252,10 +265,10 @@ function HomePage() {
         variant: "destructive"
       })
     }
-  }
+  }, [base64Input, toast, t])
 
   // Paste into Plain Text
-  const pasteText = async () => {
+  const pasteText = useCallback(async () => {
     try {
       const clipboardText = await navigator.clipboard.readText()
       handleTextChange(clipboardText)
@@ -270,10 +283,10 @@ function HomePage() {
         variant: "destructive"
       })
     }
-  }
+  }, [handleTextChange, toast, t])
 
   // Paste into Base64
-  const pasteBase64 = async () => {
+  const pasteBase64 = useCallback(async () => {
     try {
       const clipboardText = await navigator.clipboard.readText()
       handleBase64Change(clipboardText)
@@ -288,10 +301,10 @@ function HomePage() {
         variant: "destructive"
       })
     }
-  }
+  }, [handleBase64Change, toast, t])
 
   // Swap outputs
-  const handleSwap = () => {
+  const handleSwap = useCallback(() => {
     const tempText = textInput
     setTextInput(base64Input)
     setBase64Input(tempText)
@@ -310,20 +323,25 @@ function HomePage() {
         }
       }
     }
-  }
+  }, [textInput, base64Input, isLiveConvert])
 
   // Clear all content
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setTextInput('')
     setBase64Input('')
     toast({
       title: t.cleared,
       description: t.clearedDesc,
     })
-  }
+  }, [toast, t])
+
+  // Toggle live convert
+  const toggleLiveConvert = useCallback(() => {
+    setIsLiveConvert(prev => !prev)
+  }, [])
 
   // File Drag & Drop handlers
-  const handleDrag = (e: DragEvent<HTMLElement>, type: 'text' | 'base64', active: boolean) => {
+  const handleDrag = useCallback((e: DragEvent<HTMLElement>, type: 'text' | 'base64', active: boolean) => {
     e.preventDefault()
     e.stopPropagation()
     if (type === 'text') {
@@ -331,32 +349,9 @@ function HomePage() {
     } else {
       setBase64DragActive(active)
     }
-  }
+  }, [])
 
-  const handleDrop = (e: DragEvent<HTMLElement>, type: 'text' | 'base64') => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    if (type === 'text') {
-      setTextDragActive(false)
-    } else {
-      setBase64DragActive(false)
-    }
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0]
-      readFileContents(file, type)
-    }
-  }
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>, type: 'text' | 'base64') => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      readFileContents(file, type)
-    }
-  }
-
-  const readFileContents = (file: File, type: 'text' | 'base64') => {
+  const readFileContents = useCallback((file: File, type: 'text' | 'base64') => {
     const reader = new FileReader()
     reader.onload = (event) => {
       const content = event.target?.result as string
@@ -371,19 +366,58 @@ function HomePage() {
       })
     }
     reader.readAsText(file)
-  }
+  }, [handleTextChange, handleBase64Change, toast, t])
 
-  // Text metrics calculator
-  const getMetrics = (val: string) => {
-    const chars = val.length
-    const lines = val === '' ? 0 : val.split('\n').length
-    const words = val.trim() === '' ? 0 : val.trim().split(/\s+/).length
-    const bytes = new TextEncoder().encode(val).length
-    return { chars, lines, words, bytes }
-  }
+  const handleDrop = useCallback((e: DragEvent<HTMLElement>, type: 'text' | 'base64') => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (type === 'text') {
+      setTextDragActive(false)
+    } else {
+      setBase64DragActive(false)
+    }
 
-  const textMetrics = getMetrics(textInput)
-  const base64Metrics = getMetrics(base64Input)
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0]
+      readFileContents(file, type)
+    }
+  }, [readFileContents])
+
+  const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>, type: 'text' | 'base64') => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      readFileContents(file, type)
+    }
+  }, [readFileContents])
+
+  // Memoize click handlers for file inputs
+  const handleTextFileClick = useCallback(() => textFileInputRef.current?.click(), [])
+  const handleBase64FileClick = useCallback(() => base64FileInputRef.current?.click(), [])
+  
+  // Memoize clear handlers for textareas
+  const handleClearText = useCallback(() => handleTextChange(''), [handleTextChange])
+  const handleClearBase64 = useCallback(() => handleBase64Change(''), [handleBase64Change])
+
+  // Memoize drag event handlers for text panel
+  const handleTextDragEnter = useCallback((e: DragEvent<HTMLElement>) => handleDrag(e, 'text', true), [handleDrag])
+  const handleTextDragOver = useCallback((e: DragEvent<HTMLElement>) => handleDrag(e, 'text', true), [handleDrag])
+  const handleTextDragLeave = useCallback((e: DragEvent<HTMLElement>) => handleDrag(e, 'text', false), [handleDrag])
+  const handleTextDrop = useCallback((e: DragEvent<HTMLElement>) => handleDrop(e, 'text'), [handleDrop])
+
+  // Memoize drag event handlers for base64 panel
+  const handleBase64DragEnter = useCallback((e: DragEvent<HTMLElement>) => handleDrag(e, 'base64', true), [handleDrag])
+  const handleBase64DragOver = useCallback((e: DragEvent<HTMLElement>) => handleDrag(e, 'base64', true), [handleDrag])
+  const handleBase64DragLeave = useCallback((e: DragEvent<HTMLElement>) => handleDrag(e, 'base64', false), [handleDrag])
+  const handleBase64Drop = useCallback((e: DragEvent<HTMLElement>) => handleDrop(e, 'base64'), [handleDrop])
+
+  // Memoize textarea change handlers
+  const handleTextChangeHandler = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => handleTextChange(e.target.value), [handleTextChange])
+  const handleBase64ChangeHandler = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => handleBase64Change(e.target.value), [handleBase64Change])
+
+  // Memoize file input change handlers
+  const handleTextFileChange = useCallback((e: ChangeEvent<HTMLInputElement>) => handleFileChange(e, 'text'), [handleFileChange])
+  const handleBase64FileChange = useCallback((e: ChangeEvent<HTMLInputElement>) => handleFileChange(e, 'base64'), [handleFileChange])
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col justify-between transition-colors duration-300">
@@ -419,7 +453,7 @@ function HomePage() {
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border bg-card/40 backdrop-blur-sm">
               <span className="text-xs font-semibold text-muted-foreground">{t.liveConvert}</span>
               <button 
-                onClick={() => setIsLiveConvert(!isLiveConvert)}
+                onClick={toggleLiveConvert}
                 className={`w-10 h-6 rounded-full p-1 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 ${isLiveConvert ? 'bg-primary' : 'bg-muted-foreground/30'}`}
               >
                 <div className={`bg-white dark:bg-slate-900 w-4 h-4 rounded-full shadow-md transform duration-200 ${isLiveConvert ? 'translate-x-4' : 'translate-x-0'}`} />
@@ -452,10 +486,10 @@ function HomePage() {
           {/* Plain Text Panel */}
           <section 
             className="flex flex-col relative"
-            onDragEnter={(e) => handleDrag(e, 'text', true)}
-            onDragOver={(e) => handleDrag(e, 'text', true)}
-            onDragLeave={(e) => handleDrag(e, 'text', false)}
-            onDrop={(e) => handleDrop(e, 'text')}
+            onDragEnter={handleTextDragEnter}
+            onDragOver={handleTextDragOver}
+            onDragLeave={handleTextDragLeave}
+            onDrop={handleTextDrop}
           >
             {/* Drag & Drop Overlay */}
             <div className={`absolute inset-0 z-50 bg-background/90 dark:bg-slate-900/90 border-2 border-dashed border-primary rounded-2xl flex flex-col items-center justify-center gap-3 transition-all duration-300 pointer-events-none ${textDragActive ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}>
@@ -486,7 +520,7 @@ function HomePage() {
                   ref={textAreaRef}
                   placeholder={t.textPlaceholder}
                   value={textInput}
-                  onChange={(e) => handleTextChange(e.target.value)}
+                  onChange={handleTextChangeHandler}
                   className="w-full flex-grow resize-y border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent rounded-none p-4 text-sm font-mono text-foreground placeholder:text-muted-foreground/60 leading-relaxed"
                   style={{ height: `${textareaHeight}px` }}
                 />
@@ -495,13 +529,13 @@ function HomePage() {
                 {!textInput && (
                   <div className="absolute bottom-3 left-4 text-[10px] text-muted-foreground/50 pointer-events-none flex items-center gap-1.5">
                     <Upload className="w-3.5 h-3.5" />
-                    <span>{t.dragHint} <span className="underline cursor-pointer pointer-events-auto" onClick={() => textFileInputRef.current?.click()}>{t.uploadFile}</span></span>
+                    <span>{t.dragHint} <span className="underline cursor-pointer pointer-events-auto" onClick={handleTextFileClick}>{t.uploadFile}</span></span>
                     <input 
                       type="file" 
                       ref={textFileInputRef} 
                       className="hidden" 
                       accept=".txt,.json,.xml,.csv,.html,.js,.ts"
-                      onChange={(e) => handleFileChange(e, 'text')}
+                      onChange={handleTextFileChange}
                     />
                   </div>
                 )}
@@ -514,7 +548,7 @@ function HomePage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => textFileInputRef.current?.click()}
+                    onClick={handleTextFileClick}
                     className="h-8 w-8 rounded-lg hover:bg-accent"
                     title={t.uploadFile}
                   >
@@ -536,7 +570,7 @@ function HomePage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleTextChange('')}
+                    onClick={handleClearText}
                     disabled={!textInput}
                     className="h-8 w-8 rounded-lg hover:bg-accent text-destructive hover:text-destructive"
                     title={t.clearAll}
@@ -605,10 +639,10 @@ function HomePage() {
           {/* Base64 Encoded Panel */}
           <section 
             className="flex flex-col relative"
-            onDragEnter={(e) => handleDrag(e, 'base64', true)}
-            onDragOver={(e) => handleDrag(e, 'base64', true)}
-            onDragLeave={(e) => handleDrag(e, 'base64', false)}
-            onDrop={(e) => handleDrop(e, 'base64')}
+            onDragEnter={handleBase64DragEnter}
+            onDragOver={handleBase64DragOver}
+            onDragLeave={handleBase64DragLeave}
+            onDrop={handleBase64Drop}
           >
             {/* Drag & Drop Overlay */}
             <div className={`absolute inset-0 z-50 bg-background/90 dark:bg-slate-900/90 border-2 border-dashed border-primary rounded-2xl flex flex-col items-center justify-center gap-3 transition-all duration-300 pointer-events-none ${base64DragActive ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}>
@@ -639,7 +673,7 @@ function HomePage() {
                   ref={base64AreaRef}
                   placeholder={t.base64Placeholder}
                   value={base64Input}
-                  onChange={(e) => handleBase64Change(e.target.value)}
+                  onChange={handleBase64ChangeHandler}
                   className="w-full flex-grow resize-y border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent rounded-none p-4 text-sm font-mono text-foreground placeholder:text-muted-foreground/60 leading-relaxed"
                   style={{ height: `${textareaHeight}px` }}
                 />
@@ -648,13 +682,13 @@ function HomePage() {
                 {!base64Input && (
                   <div className="absolute bottom-3 left-4 text-[10px] text-muted-foreground/50 pointer-events-none flex items-center gap-1.5">
                     <Upload className="w-3.5 h-3.5" />
-                    <span>{t.dragHint} <span className="underline cursor-pointer pointer-events-auto" onClick={() => base64FileInputRef.current?.click()}>{t.uploadFile}</span></span>
+                    <span>{t.dragHint} <span className="underline cursor-pointer pointer-events-auto" onClick={handleBase64FileClick}>{t.uploadFile}</span></span>
                     <input 
                       type="file" 
                       ref={base64FileInputRef} 
                       className="hidden" 
                       accept=".txt,.json,.xml,.csv,.html,.js,.ts,.b64,.base64"
-                      onChange={(e) => handleFileChange(e, 'base64')}
+                      onChange={handleBase64FileChange}
                     />
                   </div>
                 )}
@@ -667,7 +701,7 @@ function HomePage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => base64FileInputRef.current?.click()}
+                    onClick={handleBase64FileClick}
                     className="h-8 w-8 rounded-lg hover:bg-accent"
                     title={t.uploadFile}
                   >
@@ -689,7 +723,7 @@ function HomePage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleBase64Change('')}
+                    onClick={handleClearBase64}
                     disabled={!base64Input}
                     className="h-8 w-8 rounded-lg hover:bg-accent text-destructive hover:text-destructive"
                     title={t.clearAll}
