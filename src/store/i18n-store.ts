@@ -18,11 +18,24 @@ export interface Translation {
   textPlaceholder: string
   base64Placeholder: string
   
-  // Buttons
+  // Buttons & Utilities
   convertToBase64: string
   convertToText: string
   clearAll: string
   languageSelector: string
+  liveConvert: string
+  themeLight: string
+  themeDark: string
+  chars: string
+  lines: string
+  words: string
+  bytes: string
+  dragActive: string
+  dragHint: string
+  swapTooltip: string
+  paste: string
+  pasteTooltip: string
+  uploadFile: string
   
   // Toast messages
   emptyInput: string
@@ -76,6 +89,19 @@ const translations: Record<Language, Translation> = {
     convertToText: '解码为文本',
     clearAll: '清空所有内容',
     languageSelector: '选择语言',
+    liveConvert: '实时自动转换',
+    themeLight: '浅色模式',
+    themeDark: '深色模式',
+    chars: '字符',
+    lines: '行',
+    words: '字',
+    bytes: '字节',
+    dragActive: '松开以导入文件内容...',
+    dragHint: '拖放文件到此处或',
+    swapTooltip: '对调输入与输出',
+    paste: '粘贴',
+    pasteTooltip: '从剪贴板粘贴',
+    uploadFile: '上传文件',
     
     emptyInput: '输入为空',
     emptyInputDesc: '请输入要转换的文本',
@@ -125,6 +151,19 @@ const translations: Record<Language, Translation> = {
     convertToText: 'Decode to Text',
     clearAll: 'Clear All Content',
     languageSelector: 'Select Language',
+    liveConvert: 'Live Conversion',
+    themeLight: 'Light Theme',
+    themeDark: 'Dark Theme',
+    chars: 'chars',
+    lines: 'lines',
+    words: 'words',
+    bytes: 'bytes',
+    dragActive: 'Drop to import file...',
+    dragHint: 'Drag & drop file here or',
+    swapTooltip: 'Swap plain text and Base64',
+    paste: 'Paste',
+    pasteTooltip: 'Paste from clipboard',
+    uploadFile: 'Upload',
     
     emptyInput: 'Empty Input',
     emptyInputDesc: 'Please enter text to convert',
@@ -174,13 +213,26 @@ const translations: Record<Language, Translation> = {
     convertToText: 'テキストにデコード',
     clearAll: 'すべてクリア',
     languageSelector: '言語選択',
+    liveConvert: 'リアルタイム変換',
+    themeLight: 'ライトモード',
+    themeDark: 'ダークモード',
+    chars: '文字',
+    lines: '行',
+    words: '単語',
+    bytes: 'バイト',
+    dragActive: 'ファイルをドロップ...',
+    dragHint: 'ここにファイルをドラッグ＆ドロップまたは',
+    swapTooltip: '入出力を入れ替える',
+    paste: '貼り付け',
+    pasteTooltip: 'クリップボードから貼り付け',
+    uploadFile: '選択',
     
     emptyInput: '入力が空です',
     emptyInputDesc: '変換するテキストを入力してください',
     convertSuccess: '変換成功',
     convertSuccessDesc: 'テキストが Base64 に変換されました',
     convertFailed: '変換失敗',
-    convertFailedDesc: 'このテキストを変換できません。入力内容を確認してください',
+    convertFailedDesc: 'このテキストを转换できません。入力内容を確認してください',
     decodeSuccess: 'デコード成功',
     decodeSuccessDesc: 'Base64 がテキストに変換されました',
     decodeFailed: 'デコード失敗',
@@ -204,7 +256,7 @@ const translations: Record<Language, Translation> = {
     quickClear: 'クイッククリア',
     quickClearDesc: 'ワンクリックですべてをクリア',
     
-    footerText: '安全で信頼性の高い Base64 変換ツール • すべての処理はローカルで実行 • データプライバシーを保護'
+    footerText: '安全で信頼性の高い Base64 変換ツール • すべての処理はローカルで実行 • 数据プライバシーを保護'
   },
   
   ko: {
@@ -223,6 +275,19 @@ const translations: Record<Language, Translation> = {
     convertToText: '텍스트로 디코딩',
     clearAll: '모두 지우기',
     languageSelector: '언어 선택',
+    liveConvert: '실시간 변환',
+    themeLight: '라이트 모드',
+    themeDark: '다크 모드',
+    chars: '자',
+    lines: '줄',
+    words: '단어',
+    bytes: '바이트',
+    dragActive: '파일을 놓으세요...',
+    dragHint: '여기에 파일을 드래그 앤 드롭하거나',
+    swapTooltip: '입력과 출력 전환',
+    paste: '붙여넣기',
+    pasteTooltip: '클립보드에서 붙여넣기',
+    uploadFile: '선택',
     
     emptyInput: '입력이 비어있음',
     emptyInputDesc: '변환할 텍스트를 입력해주세요',
@@ -265,7 +330,7 @@ interface I18nState {
 
 export const useI18nStore = create<I18nState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       currentLanguage: 'zh',
       setLanguage: (language: Language) => 
         set({ 
@@ -278,7 +343,6 @@ export const useI18nStore = create<I18nState>()(
       name: 'base64-converter-i18n',
       onRehydrateStorage: () => (state) => {
         if (state) {
-          // Ensure translations are loaded after rehydration
           state.t = translations[state.currentLanguage]
         }
       }

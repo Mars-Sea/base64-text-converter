@@ -1,25 +1,48 @@
-import { useState, useRef, useEffect } from 'react'
-import { Copy, RotateCcw, ArrowUpDown, Check, Hash } from 'lucide-react'
+import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react'
+import { 
+  Copy, 
+  RotateCcw, 
+  ArrowLeftRight, 
+  Check, 
+  Hash, 
+  Sun, 
+  Moon, 
+  Upload, 
+  Clipboard, 
+  Trash2, 
+  Sparkles,
+  ArrowUpDown
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { useI18nStore } from '@/store/i18n-store'
+import { useThemeStore } from '@/store/theme-store'
 import { LanguageSelector } from '@/components/LanguageSelector'
+import { encodeTextToBase64, decodeBase64ToText } from '@/lib/base64'
 
 function HomePage() {
   const [textInput, setTextInput] = useState('')
   const [base64Input, setBase64Input] = useState('')
   const [copiedText, setCopiedText] = useState(false)
   const [copiedBase64, setCopiedBase64] = useState(false)
-  const [textareaHeight, setTextareaHeight] = useState(200)
+  const [isLiveConvert, setIsLiveConvert] = useState(true)
+  const [textareaHeight, setTextareaHeight] = useState(250)
+  
+  // Drag and drop states
+  const [textDragActive, setTextDragActive] = useState(false)
+  const [base64DragActive, setBase64DragActive] = useState(false)
+
   const { toast } = useToast()
   const { t } = useI18nStore()
+  const { theme, toggleTheme } = useThemeStore()
   
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
   const base64AreaRef = useRef<HTMLTextAreaElement>(null)
+  const textFileInputRef = useRef<HTMLInputElement>(null)
+  const base64FileInputRef = useRef<HTMLInputElement>(null)
 
-  // Synchronize textarea heights with enhanced feedback
+  // Synchronize textarea heights
   useEffect(() => {
     const textArea = textAreaRef.current
     const base64Area = base64AreaRef.current
@@ -34,21 +57,11 @@ function HomePage() {
       isResizing = true
       const newHeight = sourceElement.offsetHeight
       
-      if (Math.abs(newHeight - textareaHeight) > 5) { // Threshold to prevent micro-adjustments
+      if (Math.abs(newHeight - textareaHeight) > 5) {
         setTextareaHeight(newHeight)
-        
-        // Add visual feedback during sync
-        targetElement.classList.add('syncing')
         targetElement.style.height = `${newHeight}px`
-        
-        // Remove visual feedback after animation
-        setTimeout(() => {
-          targetElement.classList.remove('syncing')
-          isResizing = false
-        }, 150)
-      } else {
-        isResizing = false
       }
+      isResizing = false
     }
 
     const handleTextAreaResize = (entries: ResizeObserverEntry[]) => {
@@ -67,7 +80,6 @@ function HomePage() {
       }
     }
 
-    // Use ResizeObserver for better performance and accuracy
     const textAreaObserver = new ResizeObserver(handleTextAreaResize)
     const base64AreaObserver = new ResizeObserver(handleBase64AreaResize)
     
@@ -80,7 +92,7 @@ function HomePage() {
     }
   }, [textareaHeight])
 
-  // Initialize both textareas with the same height
+  // Initialize constraints
   useEffect(() => {
     const textArea = textAreaRef.current
     const base64Area = base64AreaRef.current
@@ -90,16 +102,16 @@ function HomePage() {
       textArea.style.height = initialHeight
       base64Area.style.height = initialHeight
       
-      // Ensure both textareas have the same min and max height constraints
       textArea.style.minHeight = '200px'
       textArea.style.maxHeight = '600px'
       base64Area.style.minHeight = '200px'
       base64Area.style.maxHeight = '600px'
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Convert text to Base64
-  const convertToBase64 = () => {
+  // Manual convert Text to Base64
+  const handleConvertToBase64 = () => {
     if (!textInput.trim()) {
       toast({
         title: t.emptyInput,
@@ -110,13 +122,13 @@ function HomePage() {
     }
     
     try {
-      const encoded = btoa(unescape(encodeURIComponent(textInput)))
+      const encoded = encodeTextToBase64(textInput)
       setBase64Input(encoded)
       toast({
         title: t.convertSuccess,
         description: t.convertSuccessDesc,
       })
-    } catch (error) {
+    } catch {
       toast({
         title: t.convertFailed,
         description: t.convertFailedDesc,
@@ -125,8 +137,8 @@ function HomePage() {
     }
   }
 
-  // Convert Base64 to text
-  const convertToText = () => {
+  // Manual convert Base64 to Text
+  const handleConvertToText = () => {
     if (!base64Input.trim()) {
       toast({
         title: t.emptyInput,
@@ -137,13 +149,13 @@ function HomePage() {
     }
     
     try {
-      const decoded = decodeURIComponent(escape(atob(base64Input)))
+      const decoded = decodeBase64ToText(base64Input)
       setTextInput(decoded)
       toast({
         title: t.decodeSuccess,
         description: t.decodeSuccessDesc,
       })
-    } catch (error) {
+    } catch {
       toast({
         title: t.decodeFailed,
         description: t.decodeFailedDesc,
@@ -152,9 +164,43 @@ function HomePage() {
     }
   }
 
-  // Copy text to clipboard
+  // Handle Plain Text Changes (with Auto-Convert)
+  const handleTextChange = (value: string) => {
+    setTextInput(value)
+    if (isLiveConvert) {
+      if (!value) {
+        setBase64Input('')
+        return
+      }
+      try {
+        const encoded = encodeTextToBase64(value)
+        setBase64Input(encoded)
+      } catch {
+        // Silently capture invalid characters during typing
+      }
+    }
+  }
+
+  // Handle Base64 Changes (with Auto-Convert)
+  const handleBase64Change = (value: string) => {
+    setBase64Input(value)
+    if (isLiveConvert) {
+      if (!value) {
+        setTextInput('')
+        return
+      }
+      try {
+        const decoded = decodeBase64ToText(value)
+        setTextInput(decoded)
+      } catch {
+        // Silently capture invalid base64 segments during typing
+      }
+    }
+  }
+
+  // Copy plain text to clipboard
   const copyText = async () => {
-    if (!textInput.trim()) {
+    if (!textInput) {
       toast({
         title: t.noContentToCopy,
         description: t.noContentToCopyDesc,
@@ -171,7 +217,7 @@ function HomePage() {
         title: t.copySuccess,
         description: t.copySuccessDesc,
       })
-    } catch (error) {
+    } catch {
       toast({
         title: t.copyFailed,
         description: t.copyFailedDesc,
@@ -182,7 +228,7 @@ function HomePage() {
 
   // Copy Base64 to clipboard
   const copyBase64 = async () => {
-    if (!base64Input.trim()) {
+    if (!base64Input) {
       toast({
         title: t.noContentToCopy,
         description: t.noContentToCopyDesc,
@@ -199,12 +245,70 @@ function HomePage() {
         title: t.copySuccess,
         description: t.copySuccessDesc,
       })
-    } catch (error) {
+    } catch {
       toast({
         title: t.copyFailed,
         description: t.copyFailedDesc,
         variant: "destructive"
       })
+    }
+  }
+
+  // Paste into Plain Text
+  const pasteText = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText()
+      handleTextChange(clipboardText)
+      toast({
+        title: t.copySuccess,
+        description: t.copySuccessDesc,
+      })
+    } catch {
+      toast({
+        title: t.copyFailed,
+        description: t.copyFailedDesc || "无法读取剪贴板，请使用 Ctrl+V 快捷键进行粘贴",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Paste into Base64
+  const pasteBase64 = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText()
+      handleBase64Change(clipboardText)
+      toast({
+        title: t.copySuccess,
+        description: t.copySuccessDesc,
+      })
+    } catch {
+      toast({
+        title: t.copyFailed,
+        description: t.copyFailedDesc || "无法读取剪贴板，请使用 Ctrl+V 快捷键进行粘贴",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Swap outputs
+  const handleSwap = () => {
+    const tempText = textInput
+    setTextInput(base64Input)
+    setBase64Input(tempText)
+    
+    if (isLiveConvert) {
+      // Re-trigger encode/decode with new inputs
+      try {
+        const decoded = decodeBase64ToText(tempText)
+        setTextInput(decoded)
+      } catch {
+        try {
+          const encoded = encodeTextToBase64(tempText)
+          setBase64Input(encoded)
+        } catch {
+          // If neither works, just leave swapped values as is
+        }
+      }
     }
   }
 
@@ -218,177 +322,473 @@ function HomePage() {
     })
   }
 
+  // File Drag & Drop handlers
+  const handleDrag = (e: DragEvent<HTMLElement>, type: 'text' | 'base64', active: boolean) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (type === 'text') {
+      setTextDragActive(active)
+    } else {
+      setBase64DragActive(active)
+    }
+  }
+
+  const handleDrop = (e: DragEvent<HTMLElement>, type: 'text' | 'base64') => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (type === 'text') {
+      setTextDragActive(false)
+    } else {
+      setBase64DragActive(false)
+    }
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0]
+      readFileContents(file, type)
+    }
+  }
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>, type: 'text' | 'base64') => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      readFileContents(file, type)
+    }
+  }
+
+  const readFileContents = (file: File, type: 'text' | 'base64') => {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const content = event.target?.result as string
+      if (type === 'text') {
+        handleTextChange(content)
+      } else {
+        handleBase64Change(content.trim())
+      }
+      toast({
+        title: t.convertSuccess || "导入成功",
+        description: `${file.name} 已加载`,
+      })
+    }
+    reader.readAsText(file)
+  }
+
+  // Text metrics calculator
+  const getMetrics = (val: string) => {
+    const chars = val.length
+    const lines = val === '' ? 0 : val.split('\n').length
+    const words = val.trim() === '' ? 0 : val.trim().split(/\s+/).length
+    const bytes = new TextEncoder().encode(val).length
+    return { chars, lines, words, bytes }
+  }
+
+  const textMetrics = getMetrics(textInput)
+  const base64Metrics = getMetrics(base64Input)
+
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4 pt-8">
-          <div className="flex items-center justify-center gap-3">
-            <div className="p-2 bg-accent/10 rounded-lg">
-              <Hash className="w-6 h-6 text-accent" />
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col justify-between transition-colors duration-300">
+      {/* Background Decorative Blur Blobs */}
+      <div className="glow-blob-1" />
+      <div className="glow-blob-2" />
+      
+      {/* Grid Pattern Overlay */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-100 pointer-events-none" />
+
+      {/* Main Container */}
+      <div className="max-w-6xl w-full mx-auto px-4 md:px-6 py-6 md:py-12 z-10 flex-grow flex flex-col justify-center space-y-8">
+        
+        {/* Navigation & Header */}
+        <header className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-border/40 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary/10 dark:bg-primary/20 rounded-2xl border border-primary/20 shadow-inner">
+              <Sparkles className="w-6 h-6 text-primary animate-pulse" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-              {t.title}
-            </h1>
-            <div className="ml-4">
-              <LanguageSelector />
+            <div>
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent">
+                {t.title}
+              </h1>
+              <p className="text-muted-foreground text-xs md:text-sm mt-0.5 max-w-md">
+                {t.subtitle}
+              </p>
             </div>
           </div>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            {t.subtitle}
-          </p>
-        </div>
 
-        {/* Main Content */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Text Input Section */}
-          <Card className="shadow-sm border-border">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl flex items-center gap-2">
-                <span className="w-2 h-2 bg-accent rounded-full"></span>
-                {t.plainText}
-              </CardTitle>
-              <CardDescription>
-                {t.plainTextDesc}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                ref={textAreaRef}
-                placeholder={t.textPlaceholder}
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
-                className="min-h-[200px] max-h-[600px] resize-y resizable-textarea text-sm font-mono bg-input border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                style={{ height: `${textareaHeight}px` }}
-              />
-              <div className="flex gap-2">
-                <Button 
-                  onClick={convertToBase64}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  disabled={!textInput.trim()}
-                >
-                  <ArrowUpDown className="w-4 h-4 mr-2" />
-                  {t.convertToBase64}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={copyText}
-                  disabled={!textInput.trim()}
-                  className="hover:bg-accent hover:text-accent-foreground transition-colors"
-                >
-                  {copiedText ? (
-                    <Check className="w-4 h-4 text-accent" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
+          {/* Controls Bar */}
+          <div className="flex items-center gap-3">
+            {/* Live Convert Toggle */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border bg-card/40 backdrop-blur-sm">
+              <span className="text-xs font-semibold text-muted-foreground">{t.liveConvert}</span>
+              <button 
+                onClick={() => setIsLiveConvert(!isLiveConvert)}
+                className={`w-10 h-6 rounded-full p-1 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 ${isLiveConvert ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+              >
+                <div className={`bg-white dark:bg-slate-900 w-4 h-4 rounded-full shadow-md transform duration-200 ${isLiveConvert ? 'translate-x-4' : 'translate-x-0'}`} />
+              </button>
+            </div>
+
+            {/* Language Selector */}
+            <LanguageSelector />
+
+            {/* Dark Mode Toggle */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              className="rounded-xl hover:bg-accent hover:text-accent-foreground border-border bg-card/40 backdrop-blur-sm shadow-sm"
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4.5 h-4.5 text-yellow-400 fill-yellow-400" />
+              ) : (
+                <Moon className="w-4.5 h-4.5 text-primary" />
+              )}
+            </Button>
+          </div>
+        </header>
+
+        {/* Workspace Panels */}
+        <main className="grid md:grid-cols-2 gap-6 relative items-stretch">
+          
+          {/* Plain Text Panel */}
+          <section 
+            className="flex flex-col relative"
+            onDragEnter={(e) => handleDrag(e, 'text', true)}
+            onDragOver={(e) => handleDrag(e, 'text', true)}
+            onDragLeave={(e) => handleDrag(e, 'text', false)}
+            onDrop={(e) => handleDrop(e, 'text')}
+          >
+            {/* Drag & Drop Overlay */}
+            <div className={`absolute inset-0 z-50 bg-background/90 dark:bg-slate-900/90 border-2 border-dashed border-primary rounded-2xl flex flex-col items-center justify-center gap-3 transition-all duration-300 pointer-events-none ${textDragActive ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}>
+              <Upload className="w-10 h-10 text-primary animate-bounce" />
+              <p className="text-sm font-semibold text-foreground">{t.dragActive}</p>
+            </div>
+
+            <div className="glass-card rounded-2xl flex-grow flex flex-col overflow-hidden transition-all duration-200 focus-within:ring-2 focus-within:ring-primary/20">
+              
+              {/* Panel Header */}
+              <div className="flex items-center justify-between px-4 py-3 bg-muted/40 dark:bg-slate-900/40 border-b border-border/50">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+                  <h2 className="text-sm font-bold text-foreground tracking-wide">{t.plainText}</h2>
+                </div>
+                
+                {/* Statistics Tooltip-style info */}
+                <div className="flex items-center gap-3 text-[10px] md:text-xs text-muted-foreground font-medium">
+                  <span>{textMetrics.chars} {t.chars}</span>
+                  <span>{textMetrics.lines} {t.lines}</span>
+                  <span>{textMetrics.bytes} {t.bytes}</span>
+                </div>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Base64 Input Section */}
-          <Card className="shadow-sm border-border">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl flex items-center gap-2">
-                <span className="w-2 h-2 bg-primary rounded-full"></span>
-                {t.base64Encoded}
-              </CardTitle>
-              <CardDescription>
-                {t.base64EncodedDesc}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                ref={base64AreaRef}
-                placeholder={t.base64Placeholder}
-                value={base64Input}
-                onChange={(e) => setBase64Input(e.target.value)}
-                className="min-h-[200px] max-h-[600px] resize-y resizable-textarea text-sm font-mono bg-input border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                style={{ height: `${textareaHeight}px` }}
-              />
-              <div className="flex gap-2">
-                <Button
-                  onClick={convertToText}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  disabled={!base64Input.trim()}
-                >
-                  <ArrowUpDown className="w-4 h-4 mr-2 rotate-180" />
-                  {t.convertToText}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={copyBase64}
-                  disabled={!base64Input.trim()}
-                  className="hover:bg-accent hover:text-accent-foreground transition-colors"
-                >
-                  {copiedBase64 ? (
-                    <Check className="w-4 h-4 text-accent" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
+              {/* Textarea Area */}
+              <div className="relative flex-grow flex flex-col">
+                <Textarea
+                  ref={textAreaRef}
+                  placeholder={t.textPlaceholder}
+                  value={textInput}
+                  onChange={(e) => handleTextChange(e.target.value)}
+                  className="w-full flex-grow resize-y border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent rounded-none p-4 text-sm font-mono text-foreground placeholder:text-muted-foreground/60 leading-relaxed"
+                  style={{ height: `${textareaHeight}px` }}
+                />
+                
+                {/* Drag hint when empty */}
+                {!textInput && (
+                  <div className="absolute bottom-3 left-4 text-[10px] text-muted-foreground/50 pointer-events-none flex items-center gap-1.5">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{t.dragHint} <span className="underline cursor-pointer pointer-events-auto" onClick={() => textFileInputRef.current?.click()}>{t.uploadFile}</span></span>
+                    <input 
+                      type="file" 
+                      ref={textFileInputRef} 
+                      className="hidden" 
+                      accept=".txt,.json,.xml,.csv,.html,.js,.ts"
+                      onChange={(e) => handleFileChange(e, 'text')}
+                    />
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Action Bar */}
-        <div className="flex justify-center">
+              {/* Panel Footer Toolbar */}
+              <div className="flex items-center justify-between px-4 py-2 border-t border-border/50 bg-muted/20">
+                <div className="flex items-center gap-1">
+                  {/* File Upload Icon */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => textFileInputRef.current?.click()}
+                    className="h-8 w-8 rounded-lg hover:bg-accent"
+                    title={t.uploadFile}
+                  >
+                    <Upload className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                  </Button>
+
+                  {/* Paste Icon */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={pasteText}
+                    className="h-8 w-8 rounded-lg hover:bg-accent"
+                    title={t.pasteTooltip}
+                  >
+                    <Clipboard className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                  </Button>
+
+                  {/* Clear Icon */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleTextChange('')}
+                    disabled={!textInput}
+                    className="h-8 w-8 rounded-lg hover:bg-accent text-destructive hover:text-destructive"
+                    title={t.clearAll}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {!isLiveConvert && (
+                    <Button 
+                      size="sm"
+                      onClick={handleConvertToBase64}
+                      className="h-8 px-4 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg shadow-sm font-semibold text-xs"
+                      disabled={!textInput}
+                    >
+                      <ArrowUpDown className="w-3.5 h-3.5 mr-1.5" />
+                      {t.convertToBase64}
+                    </Button>
+                  )}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyText}
+                    disabled={!textInput}
+                    className="h-8 px-3 rounded-lg border-border hover:bg-accent text-xs font-semibold"
+                  >
+                    {copiedText ? (
+                      <span className="flex items-center text-primary gap-1"><Check className="w-3.5 h-3.5" />已复制</span>
+                    ) : (
+                      <span className="flex items-center gap-1"><Copy className="w-3.5 h-3.5" />复制</span>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Central Absolute Swap Button (Desktop) */}
+          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleSwap}
+              className="w-11 h-11 rounded-full border border-border shadow-lg bg-card hover:bg-accent text-primary hover:text-primary transition-all duration-300 active:scale-95 group hover:rotate-180"
+              title={t.swapTooltip}
+            >
+              <ArrowLeftRight className="w-5 h-5 transition-transform duration-200" />
+            </Button>
+          </div>
+
+          {/* Mobile Swap Button (Responsive layout) */}
+          <div className="flex md:hidden justify-center my-1 z-20">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleSwap}
+              className="w-10 h-10 rounded-full border border-border shadow-md bg-card hover:bg-accent text-primary transition-all duration-300"
+              title={t.swapTooltip}
+            >
+              <ArrowUpDown className="w-4.5 h-4.5" />
+            </Button>
+          </div>
+
+          {/* Base64 Encoded Panel */}
+          <section 
+            className="flex flex-col relative"
+            onDragEnter={(e) => handleDrag(e, 'base64', true)}
+            onDragOver={(e) => handleDrag(e, 'base64', true)}
+            onDragLeave={(e) => handleDrag(e, 'base64', false)}
+            onDrop={(e) => handleDrop(e, 'base64')}
+          >
+            {/* Drag & Drop Overlay */}
+            <div className={`absolute inset-0 z-50 bg-background/90 dark:bg-slate-900/90 border-2 border-dashed border-primary rounded-2xl flex flex-col items-center justify-center gap-3 transition-all duration-300 pointer-events-none ${base64DragActive ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}>
+              <Upload className="w-10 h-10 text-primary animate-bounce" />
+              <p className="text-sm font-semibold text-foreground">{t.dragActive}</p>
+            </div>
+
+            <div className="glass-card rounded-2xl flex-grow flex flex-col overflow-hidden transition-all duration-200 focus-within:ring-2 focus-within:ring-primary/20">
+              
+              {/* Panel Header */}
+              <div className="flex items-center justify-between px-4 py-3 bg-muted/40 dark:bg-slate-900/40 border-b border-border/50">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-violet-500" />
+                  <h2 className="text-sm font-bold text-foreground tracking-wide">{t.base64Encoded}</h2>
+                </div>
+                
+                {/* Statistics Tooltip-style info */}
+                <div className="flex items-center gap-3 text-[10px] md:text-xs text-muted-foreground font-medium">
+                  <span>{base64Metrics.chars} {t.chars}</span>
+                  <span>{base64Metrics.lines} {t.lines}</span>
+                  <span>{base64Metrics.bytes} {t.bytes}</span>
+                </div>
+              </div>
+
+              {/* Textarea Area */}
+              <div className="relative flex-grow flex flex-col">
+                <Textarea
+                  ref={base64AreaRef}
+                  placeholder={t.base64Placeholder}
+                  value={base64Input}
+                  onChange={(e) => handleBase64Change(e.target.value)}
+                  className="w-full flex-grow resize-y border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent rounded-none p-4 text-sm font-mono text-foreground placeholder:text-muted-foreground/60 leading-relaxed"
+                  style={{ height: `${textareaHeight}px` }}
+                />
+                
+                {/* Drag hint when empty */}
+                {!base64Input && (
+                  <div className="absolute bottom-3 left-4 text-[10px] text-muted-foreground/50 pointer-events-none flex items-center gap-1.5">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{t.dragHint} <span className="underline cursor-pointer pointer-events-auto" onClick={() => base64FileInputRef.current?.click()}>{t.uploadFile}</span></span>
+                    <input 
+                      type="file" 
+                      ref={base64FileInputRef} 
+                      className="hidden" 
+                      accept=".txt,.json,.xml,.csv,.html,.js,.ts,.b64,.base64"
+                      onChange={(e) => handleFileChange(e, 'base64')}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Panel Footer Toolbar */}
+              <div className="flex items-center justify-between px-4 py-2 border-t border-border/50 bg-muted/20">
+                <div className="flex items-center gap-1">
+                  {/* File Upload Icon */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => base64FileInputRef.current?.click()}
+                    className="h-8 w-8 rounded-lg hover:bg-accent"
+                    title={t.uploadFile}
+                  >
+                    <Upload className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                  </Button>
+
+                  {/* Paste Icon */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={pasteBase64}
+                    className="h-8 w-8 rounded-lg hover:bg-accent"
+                    title={t.pasteTooltip}
+                  >
+                    <Clipboard className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                  </Button>
+
+                  {/* Clear Icon */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleBase64Change('')}
+                    disabled={!base64Input}
+                    className="h-8 w-8 rounded-lg hover:bg-accent text-destructive hover:text-destructive"
+                    title={t.clearAll}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {!isLiveConvert && (
+                    <Button 
+                      size="sm"
+                      onClick={handleConvertToText}
+                      className="h-8 px-4 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg shadow-sm font-semibold text-xs"
+                      disabled={!base64Input}
+                    >
+                      <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 rotate-180" />
+                      {t.convertToText}
+                    </Button>
+                  )}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyBase64}
+                    disabled={!base64Input}
+                    className="h-8 px-3 rounded-lg border-border hover:bg-accent text-xs font-semibold"
+                  >
+                    {copiedBase64 ? (
+                      <span className="flex items-center text-primary gap-1"><Check className="w-3.5 h-3.5" />已复制</span>
+                    ) : (
+                      <span className="flex items-center gap-1"><Copy className="w-3.5 h-3.5" />复制</span>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </main>
+
+        {/* Global Toolbar Action Bar */}
+        <div className="flex justify-center pt-2">
           <Button
             variant="outline"
             onClick={clearAll}
-            className="px-6 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors"
-            disabled={!textInput.trim() && !base64Input.trim()}
+            className="px-6 rounded-xl hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors bg-card/30 backdrop-blur-sm border-border text-xs font-bold shadow-sm"
+            disabled={!textInput && !base64Input}
           >
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <RotateCcw className="w-3.5 h-3.5 mr-2" />
             {t.clearAll}
           </Button>
         </div>
 
-        {/* Features Info */}
-        <div className="bg-muted/30 rounded-lg p-6 mt-8">
-          <h3 className="font-semibold text-foreground mb-4 text-center">{t.featuresTitle}</h3>
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="text-center space-y-1">
-              <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
-                <Hash className="w-4 h-4 text-accent" />
+        {/* Features Cards Redesigned */}
+        <section className="mt-8 border border-border/40 bg-card/20 dark:bg-card/10 backdrop-blur-md rounded-3xl p-6 md:p-8">
+          <h3 className="font-extrabold text-center text-foreground tracking-wide mb-6">{t.featuresTitle}</h3>
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="group bg-card/40 dark:bg-slate-900/30 border border-border/50 rounded-2xl p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+              <div className="w-10 h-10 bg-primary/10 dark:bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-primary/15 transition-transform duration-300 group-hover:scale-110">
+                <Hash className="w-5 h-5 text-primary" />
               </div>
-              <p className="font-medium">{t.localProcessing}</p>
-              <p className="text-muted-foreground text-xs">{t.localProcessingDesc}</p>
+              <p className="font-bold text-sm mb-1">{t.localProcessing}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed">{t.localProcessingDesc}</p>
             </div>
-            <div className="text-center space-y-1">
-              <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
-                <ArrowUpDown className="w-4 h-4 text-accent" />
+
+            <div className="group bg-card/40 dark:bg-slate-900/30 border border-border/50 rounded-2xl p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+              <div className="w-10 h-10 bg-violet-500/10 dark:bg-violet-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-violet-500/15 transition-transform duration-300 group-hover:scale-110">
+                <ArrowLeftRight className="w-5 h-5 text-violet-500" />
               </div>
-              <p className="font-medium">{t.bidirectionalConversion}</p>
-              <p className="text-muted-foreground text-xs">{t.bidirectionalConversionDesc}</p>
+              <p className="font-bold text-sm mb-1">{t.bidirectionalConversion}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed">{t.bidirectionalConversionDesc}</p>
             </div>
-            <div className="text-center space-y-1">
-              <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
-                <Copy className="w-4 h-4 text-accent" />
+
+            <div className="group bg-card/40 dark:bg-slate-900/30 border border-border/50 rounded-2xl p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+              <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-emerald-500/15 transition-transform duration-300 group-hover:scale-110">
+                <Copy className="w-5 h-5 text-emerald-500" />
               </div>
-              <p className="font-medium">{t.oneClickCopy}</p>
-              <p className="text-muted-foreground text-xs">{t.oneClickCopyDesc}</p>
+              <p className="font-bold text-sm mb-1">{t.oneClickCopy}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed">{t.oneClickCopyDesc}</p>
             </div>
-            <div className="text-center space-y-1">
-              <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
-                <RotateCcw className="w-4 h-4 text-accent" />
+
+            <div className="group bg-card/40 dark:bg-slate-900/30 border border-border/50 rounded-2xl p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+              <div className="w-10 h-10 bg-rose-500/10 dark:bg-rose-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-rose-500/15 transition-transform duration-300 group-hover:scale-110">
+                <RotateCcw className="w-5 h-5 text-rose-500" />
               </div>
-              <p className="font-medium">{t.quickClear}</p>
-              <p className="text-muted-foreground text-xs">{t.quickClearDesc}</p>
+              <p className="font-bold text-sm mb-1">{t.quickClear}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed">{t.quickClearDesc}</p>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center text-sm text-muted-foreground py-8">
-          <p>{t.footerText}</p>
-        </div>
+        </section>
       </div>
+
+      {/* Footer Section */}
+      <footer className="w-full text-center text-xs text-muted-foreground py-6 border-t border-border/30 bg-card/10 backdrop-blur-sm z-10">
+        <p className="tracking-wide">{t.footerText}</p>
+      </footer>
     </div>
   )
 }
 
-export default HomePage 
+export default HomePage

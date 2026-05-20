@@ -9,7 +9,7 @@ import {
 import { useI18nStore, languages, type Language } from '@/store/i18n-store'
 
 export function LanguageSelector() {
-  const { currentLanguage, setLanguage, t } = useI18nStore()
+  const { currentLanguage, setLanguage } = useI18nStore()
 
   return (
     <DropdownMenu>

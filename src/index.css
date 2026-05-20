@@ -1,82 +1,29 @@
-/**
- * =====================================
- *         UI DESIGN SYSTEM
- * =====================================
- * 
- * Project: Base64 Text Converter
- * Type: Web Utility Tool
- * 
- * DESIGN PHILOSOPHY
- * -----------------
- * Core Principle: Minimalist efficiency with maximum usability
- * Design Style: Modern Clean with subtle depth
- * Emotion Goal: Trust, reliability, and professional simplicity
- * 
- * VISUAL LANGUAGE
- * ----------------
- * Primary Focus: Clear input/output areas with distinct visual separation
- * Hierarchy: Action buttons > Content areas > Labels
- * Whitespace: Generous breathing room for reduced cognitive load
- * 
- * COLOR SYSTEM
- * -------------
- * Primary: 220 13% 18% - Professional dark for actions
- * Secondary: 210 40% 98% - Soft backgrounds for content areas
- * Accent: 142 76% 36% - Success green for positive actions
- * Neutral: Carefully balanced grays for text hierarchy
- * 
- * TYPOGRAPHY
- * ----------
- * Display: Bold headings for clear section identification
- * Body: Readable monospace for code content, sans-serif for UI
- * Scale: Clear size differentiation between headers and content
- * 
- * INTERACTIONS
- * ------------
- * Feedback: Immediate visual confirmation on all actions
- * Transitions: Smooth 200ms for state changes
- * States: Hover, focus, and active states clearly defined
- * 
- * ACCESSIBILITY
- * -------------
- * Contrast: WCAG AA compliant throughout
- * Focus: Clear keyboard navigation indicators
- * Motion: Subtle, respects reduced motion preferences
- * ====================================
- */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 220 13% 18%;
+    --background: 210 40% 98%;
+    --foreground: 224 71% 4%;
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 18%;
+    --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 18%;
-    --primary: 220 13% 18%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 210 40% 98%;
-    --secondary-foreground: 220 13% 18%;
-    --muted: 210 40% 96%;
+    --popover-foreground: 224 71% 4%;
+    --primary: 226 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 71% 4%;
+    --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 226 70% 50%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 13% 91%;
+    --border: 220 13% 90%;
     --input: 210 40% 98%;
-    --ring: 220 13% 18%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem
-  ;
+    --ring: 226 70% 50%;
+    --radius: 1rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -84,33 +31,29 @@
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%}
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 4%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 4%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 226 100% 74%;
+    --primary-foreground: 222 47% 6%;
+    --secondary: 222 47% 12%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 47% 10%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 226 100% 74%;
+    --accent-foreground: 222 47% 6%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
-  ;
+    --border: 217 32% 14%;
+    --input: 222 47% 8%;
+    --ring: 226 100% 74%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -118,63 +61,123 @@
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%}
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
 }
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  textarea, code, kbd, samp {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
   }
 }
 
-@layer components {
-  /* Enhanced synchronized textarea resizing */
-  .resizable-textarea {
-    @apply transition-all duration-200 ease-out;
-    resize: vertical;
-    overflow-y: auto;
+@layer utilities {
+  .bg-grid-pattern {
+    background-size: 50px 50px;
+    background-image: 
+      linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
   }
   
-  .resizable-textarea:hover {
-    @apply shadow-sm border-ring/20;
+  .dark .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(99, 102, 241, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(99, 102, 241, 0.02) 1px, transparent 1px);
   }
-  
-  .resizable-textarea:focus {
-    @apply shadow-md;
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
   }
-  
-  /* Visual indicator for synchronized resizing */
-  .resizable-textarea:active,
-  .resizable-textarea:focus-within {
-    @apply ring-2 ring-accent/20 border-accent/30;
+
+  .dark .glass-card {
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
   }
-  
-  /* Custom resize handle styling with sync indicator */
-  .resizable-textarea::-webkit-resizer {
-    background: linear-gradient(-45deg, 
-      transparent 0px, 
-      transparent 2px, 
-      hsl(var(--accent)) 2px, 
-      hsl(var(--accent)) 3px, 
-      transparent 3px,
-      transparent 5px,
-      hsl(var(--border)) 5px, 
-      hsl(var(--border)) 6px, 
-      transparent 6px
-    );
-    border-radius: 0 0 4px 0;
-    opacity: 0.8;
+
+  .glow-blob-1 {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%);
+    top: -200px;
+    left: -150px;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    animation: blob-float-1 25s infinite alternate ease-in-out;
   }
-  
-  .resizable-textarea:hover::-webkit-resizer {
-    opacity: 1;
+
+  .glow-blob-2 {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0) 70%);
+    bottom: -150px;
+    right: -150px;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    animation: blob-float-2 25s infinite alternate ease-in-out;
   }
-  
-  /* Synchronized resize animation */
-  .resizable-textarea.syncing {
-    @apply ring-2 ring-accent/30 border-accent/40;
-    transition: all 150ms ease-out;
+
+  .dark .glow-blob-1 {
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(99, 102, 241, 0) 70%);
   }
+  .dark .glow-blob-2 {
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%);
+  }
+}
+
+@keyframes blob-float-1 {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(80px, 40px) scale(1.1);
+  }
+  100% {
+    transform: translate(-20px, -40px) scale(0.95);
+  }
+}
+
+@keyframes blob-float-2 {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(-60px, -50px) scale(1.05);
+  }
+  100% {
+    transform: translate(40px, 30px) scale(0.9);
+  }
+}
+
+/* Custom Scrollbar for Textareas */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 119, 198, 0.3);
 }
