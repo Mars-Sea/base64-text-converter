@@ -266,7 +266,7 @@ function HomePage() {
     } catch {
       toast({
         title: t.copyFailed,
-        description: t.copyFailedDesc || "无法读取剪贴板，请使用 Ctrl+V 快捷键进行粘贴",
+        description: t.copyFailedDesc,
         variant: "destructive"
       })
     }
@@ -284,7 +284,7 @@ function HomePage() {
     } catch {
       toast({
         title: t.copyFailed,
-        description: t.copyFailedDesc || "无法读取剪贴板，请使用 Ctrl+V 快捷键进行粘贴",
+        description: t.copyFailedDesc,
         variant: "destructive"
       })
     }
@@ -366,8 +366,8 @@ function HomePage() {
         handleBase64Change(content.trim())
       }
       toast({
-        title: t.convertSuccess || "导入成功",
-        description: `${file.name} 已加载`,
+        title: t.importSuccess,
+        description: t.importSuccessDesc,
       })
     }
     reader.readAsText(file)
@@ -566,9 +566,9 @@ function HomePage() {
                     className="h-8 px-3 rounded-lg border-border hover:bg-accent text-xs font-semibold"
                   >
                     {copiedText ? (
-                      <span className="flex items-center text-primary gap-1"><Check className="w-3.5 h-3.5" />已复制</span>
+                      <span className="flex items-center text-primary gap-1"><Check className="w-3.5 h-3.5" />{t.copied}</span>
                     ) : (
-                      <span className="flex items-center gap-1"><Copy className="w-3.5 h-3.5" />复制</span>
+                      <span className="flex items-center gap-1"><Copy className="w-3.5 h-3.5" />{t.copy}</span>
                     )}
                   </Button>
                 </div>
@@ -719,9 +719,9 @@ function HomePage() {
                     className="h-8 px-3 rounded-lg border-border hover:bg-accent text-xs font-semibold"
                   >
                     {copiedBase64 ? (
-                      <span className="flex items-center text-primary gap-1"><Check className="w-3.5 h-3.5" />已复制</span>
+                      <span className="flex items-center text-primary gap-1"><Check className="w-3.5 h-3.5" />{t.copied}</span>
                     ) : (
-                      <span className="flex items-center gap-1"><Copy className="w-3.5 h-3.5" />复制</span>
+                      <span className="flex items-center gap-1"><Copy className="w-3.5 h-3.5" />{t.copy}</span>
                     )}
                   </Button>
                 </div>

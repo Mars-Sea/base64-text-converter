@@ -56,6 +56,12 @@ export interface Translation {
   copyFailedDesc: string
   cleared: string
   clearedDesc: string
+  // Copy button states
+  copy: string
+  copied: string
+  // File import
+  importSuccess: string
+  importSuccessDesc: string
   
   // Features
   featuresTitle: string
@@ -121,6 +127,10 @@ const translations: Record<Language, Translation> = {
     copyFailedDesc: '无法访问剪贴板',
     cleared: '已清空',
     clearedDesc: '所有内容已清除',
+    copy: '复制',
+    copied: '已复制',
+    importSuccess: '导入成功',
+    importSuccessDesc: '文件内容已加载',
     
     featuresTitle: '工具特性',
     localProcessing: '本地处理',
@@ -183,6 +193,10 @@ const translations: Record<Language, Translation> = {
     copyFailedDesc: 'Unable to access clipboard',
     cleared: 'Cleared',
     clearedDesc: 'All content has been cleared',
+    copy: 'Copy',
+    copied: 'Copied',
+    importSuccess: 'Import Successful',
+    importSuccessDesc: 'File content has been loaded',
     
     featuresTitle: 'Tool Features',
     localProcessing: 'Local Processing',
@@ -232,7 +246,7 @@ const translations: Record<Language, Translation> = {
     convertSuccess: '変換成功',
     convertSuccessDesc: 'テキストが Base64 に変換されました',
     convertFailed: '変換失敗',
-    convertFailedDesc: 'このテキストを转换できません。入力内容を確認してください',
+    convertFailedDesc: 'このテキストを変換できません。入力内容を確認してください',
     decodeSuccess: 'デコード成功',
     decodeSuccessDesc: 'Base64 がテキストに変換されました',
     decodeFailed: 'デコード失敗',
@@ -245,6 +259,10 @@ const translations: Record<Language, Translation> = {
     copyFailedDesc: 'クリップボードにアクセスできません',
     cleared: 'クリアされました',
     clearedDesc: 'すべての内容がクリアされました',
+    copy: 'コピー',
+    copied: 'コピー済み',
+    importSuccess: 'インポート成功',
+    importSuccessDesc: 'ファイル内容が読み込まれました',
     
     featuresTitle: 'ツールの特徴',
     localProcessing: 'ローカル処理',
@@ -256,7 +274,7 @@ const translations: Record<Language, Translation> = {
     quickClear: 'クイッククリア',
     quickClearDesc: 'ワンクリックですべてをクリア',
     
-    footerText: '安全で信頼性の高い Base64 変換ツール • すべての処理はローカルで実行 • 数据プライバシーを保護'
+    footerText: '安全で信頼性の高い Base64 変換ツール • すべての処理はローカルで実行 • データプライバシーを保護'
   },
   
   ko: {
@@ -307,6 +325,10 @@ const translations: Record<Language, Translation> = {
     copyFailedDesc: '클립보드에 접근할 수 없습니다',
     cleared: '지워짐',
     clearedDesc: '모든 내용이 지워졌습니다',
+    copy: '복사',
+    copied: '복사됨',
+    importSuccess: '가져오기 성공',
+    importSuccessDesc: '파일 내용이 로드되었습니다',
     
     featuresTitle: '도구 특징',
     localProcessing: '로컬 처리',
