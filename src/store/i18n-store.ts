@@ -7,17 +7,15 @@ export interface Translation {
   // Header
   title: string
   subtitle: string
-  
+
   // Sections
   plainText: string
-  plainTextDesc: string
   base64Encoded: string
-  base64EncodedDesc: string
-  
+
   // Placeholders
   textPlaceholder: string
   base64Placeholder: string
-  
+
   // Buttons & Utilities
   convertToBase64: string
   convertToText: string
@@ -30,13 +28,15 @@ export interface Translation {
   lines: string
   words: string
   bytes: string
-  dragActive: string
-  dragHint: string
-  swapTooltip: string
-  paste: string
   pasteTooltip: string
-  uploadFile: string
-  
+
+  // Status line
+  statusReady: string
+  statusEncodeFailed: string
+  statusDecodeFailedShort: string
+  statusEncoded: (textChars: number, b64Chars: number, ms: string) => string
+  statusDecoded: (b64Chars: number, textChars: number, ms: string) => string
+
   // Toast messages
   emptyInput: string
   emptyInputDesc: string
@@ -59,21 +59,7 @@ export interface Translation {
   // Copy button states
   copy: string
   copied: string
-  // File import
-  importSuccess: string
-  importSuccessDesc: string
-  
-  // Features
-  featuresTitle: string
-  localProcessing: string
-  localProcessingDesc: string
-  bidirectionalConversion: string
-  bidirectionalConversionDesc: string
-  oneClickCopy: string
-  oneClickCopyDesc: string
-  quickClear: string
-  quickClearDesc: string
-  
+
   // Footer
   footerText: string
 }
@@ -81,34 +67,35 @@ export interface Translation {
 const translations: Record<Language, Translation> = {
   zh: {
     title: 'Base64 转换工具',
-    subtitle: '安全的本地 Base64 编码解码工具，支持文本与 Base64 相互转换，数据不会离开您的浏览器',
-    
+    subtitle: '安全的本地 Base64 编码解码工具 · 数据不会离开您的浏览器',
+
     plainText: '普通文本',
-    plainTextDesc: '输入要编码的文本内容',
     base64Encoded: 'Base64 编码',
-    base64EncodedDesc: '输入要解码的 Base64 内容',
-    
-    textPlaceholder: '在此输入要转换为 Base64 的文本...',
+
+    textPlaceholder: '在此输入要编码为 Base64 的文本...',
     base64Placeholder: '在此输入要解码的 Base64 字符串...',
-    
-    convertToBase64: '转为 Base64',
-    convertToText: '解码为文本',
-    clearAll: '清空所有内容',
+
+    convertToBase64: 'encode',
+    convertToText: 'decode',
+    clearAll: 'clear-all',
     languageSelector: '选择语言',
-    liveConvert: '实时自动转换',
+    liveConvert: 'live',
     themeLight: '浅色模式',
     themeDark: '深色模式',
     chars: '字符',
     lines: '行',
     words: '字',
     bytes: '字节',
-    dragActive: '松开以导入文件内容...',
-    dragHint: '拖放文件到此处或',
-    swapTooltip: '对调输入与输出',
-    paste: '粘贴',
     pasteTooltip: '从剪贴板粘贴',
-    uploadFile: '上传文件',
-    
+
+    statusReady: '就绪 · 等待输入',
+    statusEncodeFailed: '编码失败 · 包含无法编码的字符',
+    statusDecodeFailedShort: '无效的 Base64 · 已跳过解码',
+    statusEncoded: (textChars, b64Chars, ms) =>
+      `编码完成 · ${textChars} 字符 → ${b64Chars} 字符 · ${ms}ms`,
+    statusDecoded: (b64Chars, textChars, ms) =>
+      `解码完成 · ${b64Chars} 字符 → ${textChars} 字符 · ${ms}ms`,
+
     emptyInput: '输入为空',
     emptyInputDesc: '请输入要转换的文本',
     convertSuccess: '转换成功',
@@ -127,54 +114,43 @@ const translations: Record<Language, Translation> = {
     copyFailedDesc: '无法访问剪贴板',
     cleared: '已清空',
     clearedDesc: '所有内容已清除',
-    copy: '复制',
-    copied: '已复制',
-    importSuccess: '导入成功',
-    importSuccessDesc: '文件内容已加载',
-    
-    featuresTitle: '工具特性',
-    localProcessing: '本地处理',
-    localProcessingDesc: '数据不会上传到服务器',
-    bidirectionalConversion: '双向转换',
-    bidirectionalConversionDesc: '支持编码和解码操作',
-    oneClickCopy: '一键复制',
-    oneClickCopyDesc: '快速复制结果到剪贴板',
-    quickClear: '快速清空',
-    quickClearDesc: '一键清除所有内容',
-    
-    footerText: '安全可靠的 Base64 转换工具 • 所有处理均在本地进行 • 保护您的数据隐私'
+    copy: 'copy',
+    copied: 'copied',
+
+    footerText: '所有处理均在本地进行 · 保护您的数据隐私'
   },
-  
+
   en: {
     title: 'Base64 Converter',
-    subtitle: 'Secure local Base64 encoding and decoding tool. Convert between text and Base64 while keeping your data safe in your browser',
-    
+    subtitle: 'Secure local Base64 encode/decode tool · your data never leaves the browser',
+
     plainText: 'Plain Text',
-    plainTextDesc: 'Enter text content to encode',
     base64Encoded: 'Base64 Encoded',
-    base64EncodedDesc: 'Enter Base64 content to decode',
-    
-    textPlaceholder: 'Enter text to convert to Base64...',
-    base64Placeholder: 'Enter Base64 string to decode...',
-    
-    convertToBase64: 'Convert to Base64',
-    convertToText: 'Decode to Text',
-    clearAll: 'Clear All Content',
+
+    textPlaceholder: 'Type text to encode as Base64...',
+    base64Placeholder: 'Type a Base64 string to decode...',
+
+    convertToBase64: 'encode',
+    convertToText: 'decode',
+    clearAll: 'clear-all',
     languageSelector: 'Select Language',
-    liveConvert: 'Live Conversion',
+    liveConvert: 'live',
     themeLight: 'Light Theme',
     themeDark: 'Dark Theme',
     chars: 'chars',
     lines: 'lines',
     words: 'words',
     bytes: 'bytes',
-    dragActive: 'Drop to import file...',
-    dragHint: 'Drag & drop file here or',
-    swapTooltip: 'Swap plain text and Base64',
-    paste: 'Paste',
     pasteTooltip: 'Paste from clipboard',
-    uploadFile: 'Upload',
-    
+
+    statusReady: 'ready · waiting for input',
+    statusEncodeFailed: 'encode failed · unencodable characters',
+    statusDecodeFailedShort: 'invalid base64 · decode skipped',
+    statusEncoded: (textChars, b64Chars, ms) =>
+      `encoded · ${textChars} chars → ${b64Chars} chars · ${ms}ms`,
+    statusDecoded: (b64Chars, textChars, ms) =>
+      `decoded · ${b64Chars} chars → ${textChars} chars · ${ms}ms`,
+
     emptyInput: 'Empty Input',
     emptyInputDesc: 'Please enter text to convert',
     convertSuccess: 'Conversion Successful',
@@ -193,54 +169,43 @@ const translations: Record<Language, Translation> = {
     copyFailedDesc: 'Unable to access clipboard',
     cleared: 'Cleared',
     clearedDesc: 'All content has been cleared',
-    copy: 'Copy',
-    copied: 'Copied',
-    importSuccess: 'Import Successful',
-    importSuccessDesc: 'File content has been loaded',
-    
-    featuresTitle: 'Tool Features',
-    localProcessing: 'Local Processing',
-    localProcessingDesc: 'Data never leaves your browser',
-    bidirectionalConversion: 'Bidirectional',
-    bidirectionalConversionDesc: 'Supports encoding and decoding',
-    oneClickCopy: 'One-Click Copy',
-    oneClickCopyDesc: 'Quickly copy results to clipboard',
-    quickClear: 'Quick Clear',
-    quickClearDesc: 'Clear all content with one click',
-    
-    footerText: 'Secure and reliable Base64 converter • All processing done locally • Protecting your data privacy'
+    copy: 'copy',
+    copied: 'copied',
+
+    footerText: 'All processing done locally · your privacy is protected'
   },
-  
+
   ja: {
     title: 'Base64 変換ツール',
-    subtitle: '安全なローカル Base64 エンコード・デコードツール。テキストと Base64 の相互変換をブラウザ内で安全に行えます',
-    
+    subtitle: '安全なローカル Base64 エンコード/デコードツール · データはブラウザから出ません',
+
     plainText: 'プレーンテキスト',
-    plainTextDesc: 'エンコードするテキストを入力',
     base64Encoded: 'Base64 エンコード',
-    base64EncodedDesc: 'デコードする Base64 を入力',
-    
-    textPlaceholder: 'Base64 に変換するテキストを入力してください...',
-    base64Placeholder: 'デコードする Base64 文字列を入力してください...',
-    
-    convertToBase64: 'Base64 に変換',
-    convertToText: 'テキストにデコード',
-    clearAll: 'すべてクリア',
+
+    textPlaceholder: 'Base64 にエンコードするテキストを入力...',
+    base64Placeholder: 'デコードする Base64 文字列を入力...',
+
+    convertToBase64: 'encode',
+    convertToText: 'decode',
+    clearAll: 'clear-all',
     languageSelector: '言語選択',
-    liveConvert: 'リアルタイム変換',
+    liveConvert: 'live',
     themeLight: 'ライトモード',
     themeDark: 'ダークモード',
     chars: '文字',
     lines: '行',
     words: '単語',
     bytes: 'バイト',
-    dragActive: 'ファイルをドロップ...',
-    dragHint: 'ここにファイルをドラッグ＆ドロップまたは',
-    swapTooltip: '入出力を入れ替える',
-    paste: '貼り付け',
     pasteTooltip: 'クリップボードから貼り付け',
-    uploadFile: '選択',
-    
+
+    statusReady: '待機中 · 入力を待っています',
+    statusEncodeFailed: 'エンコード失敗 · エンコードできない文字が含まれています',
+    statusDecodeFailedShort: '無効な Base64 · デコードをスキップしました',
+    statusEncoded: (textChars, b64Chars, ms) =>
+      `エンコード完了 · ${textChars} 文字 → ${b64Chars} 文字 · ${ms}ms`,
+    statusDecoded: (b64Chars, textChars, ms) =>
+      `デコード完了 · ${b64Chars} 文字 → ${textChars} 文字 · ${ms}ms`,
+
     emptyInput: '入力が空です',
     emptyInputDesc: '変換するテキストを入力してください',
     convertSuccess: '変換成功',
@@ -259,54 +224,43 @@ const translations: Record<Language, Translation> = {
     copyFailedDesc: 'クリップボードにアクセスできません',
     cleared: 'クリアされました',
     clearedDesc: 'すべての内容がクリアされました',
-    copy: 'コピー',
-    copied: 'コピー済み',
-    importSuccess: 'インポート成功',
-    importSuccessDesc: 'ファイル内容が読み込まれました',
-    
-    featuresTitle: 'ツールの特徴',
-    localProcessing: 'ローカル処理',
-    localProcessingDesc: 'データはサーバーに送信されません',
-    bidirectionalConversion: '双方向変換',
-    bidirectionalConversionDesc: 'エンコードとデコードに対応',
-    oneClickCopy: 'ワンクリックコピー',
-    oneClickCopyDesc: '結果を素早くクリップボードにコピー',
-    quickClear: 'クイッククリア',
-    quickClearDesc: 'ワンクリックですべてをクリア',
-    
-    footerText: '安全で信頼性の高い Base64 変換ツール • すべての処理はローカルで実行 • データプライバシーを保護'
+    copy: 'copy',
+    copied: 'copied',
+
+    footerText: 'すべての処理はローカルで実行 · プライバシーを保護'
   },
-  
+
   ko: {
     title: 'Base64 변환기',
-    subtitle: '안전한 로컬 Base64 인코딩 및 디코딩 도구. 브라우저에서 텍스트와 Base64 간 상호 변환을 안전하게 수행합니다',
-    
+    subtitle: '안전한 로컬 Base64 인코딩/디코딩 도구 · 데이터는 브라우저를 떠나지 않습니다',
+
     plainText: '일반 텍스트',
-    plainTextDesc: '인코딩할 텍스트 입력',
     base64Encoded: 'Base64 인코딩',
-    base64EncodedDesc: '디코딩할 Base64 입력',
-    
-    textPlaceholder: 'Base64로 변환할 텍스트를 입력하세요...',
+
+    textPlaceholder: 'Base64로 인코딩할 텍스트를 입력하세요...',
     base64Placeholder: '디코딩할 Base64 문자열을 입력하세요...',
-    
-    convertToBase64: 'Base64로 변환',
-    convertToText: '텍스트로 디코딩',
-    clearAll: '모두 지우기',
+
+    convertToBase64: 'encode',
+    convertToText: 'decode',
+    clearAll: 'clear-all',
     languageSelector: '언어 선택',
-    liveConvert: '실시간 변환',
+    liveConvert: 'live',
     themeLight: '라이트 모드',
     themeDark: '다크 모드',
     chars: '자',
     lines: '줄',
     words: '단어',
     bytes: '바이트',
-    dragActive: '파일을 놓으세요...',
-    dragHint: '여기에 파일을 드래그 앤 드롭하거나',
-    swapTooltip: '입력과 출력 전환',
-    paste: '붙여넣기',
     pasteTooltip: '클립보드에서 붙여넣기',
-    uploadFile: '선택',
-    
+
+    statusReady: '대기 중 · 입력 대기',
+    statusEncodeFailed: '인코딩 실패 · 인코딩할 수 없는 문자 포함',
+    statusDecodeFailedShort: '잘못된 Base64 · 디코딩 건어너뜀',
+    statusEncoded: (textChars, b64Chars, ms) =>
+      `인코딩 완료 · ${textChars}자 → ${b64Chars}자 · ${ms}ms`,
+    statusDecoded: (b64Chars, textChars, ms) =>
+      `디코딩 완료 · ${b64Chars}자 → ${textChars}자 · ${ms}ms`,
+
     emptyInput: '입력이 비어있음',
     emptyInputDesc: '변환할 텍스트를 입력해주세요',
     convertSuccess: '변환 성공',
@@ -325,22 +279,10 @@ const translations: Record<Language, Translation> = {
     copyFailedDesc: '클립보드에 접근할 수 없습니다',
     cleared: '지워짐',
     clearedDesc: '모든 내용이 지워졌습니다',
-    copy: '복사',
-    copied: '복사됨',
-    importSuccess: '가져오기 성공',
-    importSuccessDesc: '파일 내용이 로드되었습니다',
-    
-    featuresTitle: '도구 특징',
-    localProcessing: '로컬 처리',
-    localProcessingDesc: '데이터가 서버로 전송되지 않음',
-    bidirectionalConversion: '양방향 변환',
-    bidirectionalConversionDesc: '인코딩과 디코딩 지원',
-    oneClickCopy: '원클릭 복사',
-    oneClickCopyDesc: '결과를 클립보드에 빠르게 복사',
-    quickClear: '빠른 지우기',
-    quickClearDesc: '원클릭으로 모든 내용 지우기',
-    
-    footerText: '안전하고 신뢰할 수 있는 Base64 변환기 • 모든 처리는 로컬에서 수행 • 데이터 프라이버시 보호'
+    copy: 'copy',
+    copied: 'copied',
+
+    footerText: '모든 처리는 로컬에서 수행 · 개인정보 보호'
   }
 }
 
@@ -354,8 +296,8 @@ export const useI18nStore = create<I18nState>()(
   persist(
     (set) => ({
       currentLanguage: 'zh',
-      setLanguage: (language: Language) => 
-        set({ 
+      setLanguage: (language: Language) =>
+        set({
           currentLanguage: language,
           t: translations[language]
         }),
